@@ -1,0 +1,110 @@
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1400" y2="860" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6F3EA"/>
+      <stop offset="1" stop-color="#E7EEF2"/>
+    </linearGradient>
+    <linearGradient id="cardA" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#FFF7E8"/>
+      <stop offset="1" stop-color="#FDE8BC"/>
+    </linearGradient>
+    <linearGradient id="cardB" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#EDF7F3"/>
+      <stop offset="1" stop-color="#CFE7DA"/>
+    </linearGradient>
+    <linearGradient id="cardC" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#EEF3FB"/>
+      <stop offset="1" stop-color="#D5E2F4"/>
+    </linearGradient>
+    <linearGradient id="cardD" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#F8EEF8"/>
+      <stop offset="1" stop-color="#E5D5E7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#213547" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="10" refY="7" orient="auto">
+      <path d="M0 0L14 7L0 14V0Z" fill="#335A6D"/>
+    </marker>
+    <style>
+      .title { font: 700 34px 'Helvetica Neue', Arial, sans-serif; fill: #16222C; }
+      .subtitle { font: 500 17px 'Helvetica Neue', Arial, sans-serif; fill: #385264; }
+      .stepTitle { font: 700 21px 'Helvetica Neue', Arial, sans-serif; fill: #18242E; }
+      .stepBody { font: 500 15px 'Helvetica Neue', Arial, sans-serif; fill: #304654; }
+      .badge { font: 700 15px 'Helvetica Neue', Arial, sans-serif; fill: #16303A; }
+      .footer { font: 600 16px 'Helvetica Neue', Arial, sans-serif; fill: #294351; }
+      .small { font: 600 14px 'Helvetica Neue', Arial, sans-serif; fill: #294351; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="860" rx="28" fill="url(#bg)"/>
+
+  <text x="80" y="90" class="title">DATM Experiment Process</text>
+  <text x="80" y="122" class="subtitle">Design the trust model, validate it offline, deploy the three variants, run identical workloads, and compare gas, latency, and consistency.</text>
+
+  <rect x="80" y="180" width="260" height="170" rx="24" fill="url(#cardA)" stroke="#D5B46E" filter="url(#shadow)"/>
+  <rect x="112" y="208" width="52" height="32" rx="16" fill="#F3D792"/>
+  <text x="129" y="229" class="badge">1</text>
+  <text x="112" y="272" class="stepTitle">Design + Scope</text>
+  <text x="112" y="304" class="stepBody">Trust model, ATS formula,</text>
+  <text x="112" y="327" class="stepBody">thresholds, CSV schema,</text>
+  <text x="112" y="350" class="stepBody">10-entity workload plan.</text>
+
+  <rect x="410" y="180" width="260" height="170" rx="24" fill="url(#cardB)" stroke="#8FB99C" filter="url(#shadow)"/>
+  <rect x="442" y="208" width="52" height="32" rx="16" fill="#BFE0CB"/>
+  <text x="459" y="229" class="badge">2</text>
+  <text x="442" y="272" class="stepTitle">Offline Validation</text>
+  <text x="442" y="304" class="stepBody">Dry-run workload, formula</text>
+  <text x="442" y="327" class="stepBody">checks, CSV export shape,</text>
+  <text x="442" y="350" class="stepBody">cross-variant consistency.</text>
+
+  <rect x="740" y="180" width="260" height="170" rx="24" fill="url(#cardC)" stroke="#96AFCB" filter="url(#shadow)"/>
+  <rect x="772" y="208" width="52" height="32" rx="16" fill="#C9DAF2"/>
+  <text x="789" y="229" class="badge">3</text>
+  <text x="772" y="272" class="stepTitle">Contract Toolchain</text>
+  <text x="772" y="304" class="stepBody">Compile and test</text>
+  <text x="772" y="327" class="stepBody">TrustRegistryA, B, and C</text>
+  <text x="772" y="350" class="stepBody">before live deployment.</text>
+
+  <rect x="1070" y="180" width="260" height="170" rx="24" fill="url(#cardD)" stroke="#BA9BC0" filter="url(#shadow)"/>
+  <rect x="1102" y="208" width="52" height="32" rx="16" fill="#DAC4DE"/>
+  <text x="1119" y="229" class="badge">4</text>
+  <text x="1102" y="272" class="stepTitle">Deploy to Besu</text>
+  <text x="1102" y="304" class="stepBody">Use the isolated deploy</text>
+  <text x="1102" y="327" class="stepBody">script against the RPC</text>
+  <text x="1102" y="350" class="stepBody">endpoint only.</text>
+
+  <path d="M340 265H395" stroke="#335A6D" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M670 265H725" stroke="#335A6D" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M1000 265H1055" stroke="#335A6D" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+  <rect x="130" y="470" width="340" height="220" rx="28" fill="#FFFDF8" stroke="#D3C6A4" filter="url(#shadow)"/>
+  <text x="164" y="522" class="stepTitle">Variant A</text>
+  <text x="164" y="556" class="stepBody">Off-chain DATM calculates ATS.</text>
+  <text x="164" y="581" class="stepBody">Contract stores:</text>
+  <text x="164" y="606" class="stepBody">ATS, trust state, timestamp.</text>
+  <text x="164" y="646" class="small">Expected:</text>
+  <text x="244" y="646" class="stepBody">lowest gas, minimal on-chain logic.</text>
+
+  <rect x="530" y="470" width="340" height="220" rx="28" fill="#FBFFFC" stroke="#B7D3C1" filter="url(#shadow)"/>
+  <text x="564" y="522" class="stepTitle">Variant B</text>
+  <text x="564" y="556" class="stepBody">Off-chain normalization, on-chain</text>
+  <text x="564" y="581" class="stepBody">final ATS and trust-state calculation.</text>
+  <text x="564" y="621" class="small">Expected:</text>
+  <text x="644" y="621" class="stepBody">balanced gas and verifiability.</text>
+
+  <rect x="930" y="470" width="340" height="220" rx="28" fill="#FAFBFF" stroke="#B5C3DB" filter="url(#shadow)"/>
+  <text x="964" y="522" class="stepTitle">Variant C</text>
+  <text x="964" y="556" class="stepBody">Raw indicators on-chain, behavior</text>
+  <text x="964" y="581" class="stepBody">score and ATS computed on-chain.</text>
+  <text x="964" y="621" class="small">Expected:</text>
+  <text x="1044" y="621" class="stepBody">highest transparency and gas cost.</text>
+
+  <path d="M300 380V435" stroke="#335A6D" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M700 380V435" stroke="#335A6D" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M1100 380V435" stroke="#335A6D" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+  <rect x="80" y="745" width="1240" height="70" rx="22" fill="#16313D"/>
+  <text x="120" y="789" class="footer">Measure and compare:</text>
+  <text x="315" y="789" class="stepBody" fill="#EAF3F7">gas used • confirmation latency • block inclusion latency • DATM processing time • read latency • throughput • storage growth • event volume • classification consistency</text>
+</svg>
