@@ -4,9 +4,6 @@ Experimental framework for evaluating three Decentralized Adaptive Trust Manager
 
 This repository is designed to stay logically separate from the main Besu/Kubernetes testbed. It contains the smart contract stubs, offline experiment tooling, dry-run workload generation, CSV export logic, deployment-ready scripts, and design documentation for a research paper workflow.
 
-![DATM experiment process](docs/assets/experiment-process.svg)
-
-![Uploading ChatGPT Image Jul 4, 2026, 10_42_24 AM.png…]()
 
 ## Overview
 
