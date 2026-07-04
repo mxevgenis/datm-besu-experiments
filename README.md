@@ -6,6 +6,8 @@ This repository is designed to stay logically separate from the main Besu/Kubern
 
 ![DATM experiment process](docs/assets/experiment-process.svg)
 
+![Uploading ChatGPT Image Jul 4, 2026, 10_42_24 AM.png…]()
+
 ## Overview
 
 The framework compares three trust-management architectures:
