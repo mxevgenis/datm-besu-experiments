@@ -24,6 +24,34 @@ The current repository supports:
 
 It does not require Kubernetes access for offline development, and it does not modify the main Besu testbed manifests.
 
+## Experiment Goal
+
+The goal of this framework is to support a controlled comparison of three DATM architectures on the same private Besu environment while keeping the experiment logic isolated from infrastructure management.
+
+The comparison is intended to answer questions such as:
+
+- how much gas each trust-update architecture consumes
+- how much logic should remain off-chain versus on-chain
+- whether the three variants produce equivalent trust classifications
+- how each variant affects latency, event volume, and state growth
+
+## End-To-End Experiment Process
+
+The intended experiment workflow is:
+
+1. Define the trust model, ATS formula, thresholds, workload profiles, and CSV schemas.
+2. Validate the formulas and worked examples offline.
+3. Compile and test the contract stubs locally.
+4. Run the offline dry-run generator to validate workload shape and output formats.
+5. Prepare deployment inputs such as `BESU_RPC_URL` and a deployer private key.
+6. Deploy `TrustRegistryA`, `TrustRegistryB`, and `TrustRegistryC` to the Besu RPC endpoint.
+7. Record the deployed contract addresses.
+8. Execute experiment runs against each variant using the same logical workload.
+9. Export raw CSV data.
+10. Analyze gas, latency, throughput, storage/event growth, and consistency across variants.
+
+This repository currently covers steps `1` through `6` in an implementation-ready form, with offline tooling already available and deployment scripts prepared but not automatically executed.
+
 ## Research Scope
 
 The experiment is designed around:
@@ -47,6 +75,61 @@ Thresholds:
 - `Trusted`: `ATS >= 80`
 - `Suspicious`: `50 <= ATS < 80`
 - `Untrusted`: `ATS < 50`
+
+## What This Folder Is For
+
+This folder is the experiment workspace for the DATM study.
+
+It can be used to:
+
+- document the research design and trust model
+- compile and test the variant contracts locally
+- generate deterministic workload inputs
+- run offline dry-run simulations
+- export CSV files in the same structure intended for live runs
+- prepare deployment-ready contract artifacts and scripts
+- serve as the basis for live Besu-backed measurements later
+
+It is intentionally not the place for:
+
+- Kubernetes manifests
+- Helm charts
+- validator or RPC node configuration
+- genesis management
+- cluster operations
+
+## What Will Be Measured
+
+The experiment is designed to measure the following categories.
+
+### On-Chain Cost
+
+- gas used per trust update
+
+### Latency
+
+- transaction confirmation latency
+- block inclusion latency
+- DATM processing time
+- end-to-end trust update latency
+- trust registry read latency
+
+### Throughput
+
+- trust updates per second
+- trust updates per minute
+
+### Storage And Audit Footprint
+
+- storage growth
+- number of on-chain trust-update events
+
+### Correctness And Comparability
+
+- classification consistency across Variant A, Variant B, and Variant C
+- ATS deltas across variants for the same logical input
+
+## Experiment Variants
 
 ## Repository Layout
 
@@ -143,6 +226,66 @@ npm run deploy:contracts
 
 Do not run the deployment command unless you explicitly want to send transactions to a live RPC endpoint.
 
+## How To Use This Repository
+
+### 1. Read The Experiment Design
+
+Start with:
+
+- [docs/experiment_spec.md](docs/experiment_spec.md)
+- [docs/contracts_interface_spec.md](docs/contracts_interface_spec.md)
+- [docs/workload_profile_spec.md](docs/workload_profile_spec.md)
+- [docs/scenario_schema.md](docs/scenario_schema.md)
+- [docs/metrics_schema.md](docs/metrics_schema.md)
+
+These define the trust model, workload scope, interfaces, and measurement schema.
+
+### 2. Validate The Offline Logic
+
+Use:
+
+```bash
+npm run validate:samples
+```
+
+This confirms that the shared formulas match the worked examples and sample fixtures.
+
+### 3. Compile And Test The Contracts
+
+Use:
+
+```bash
+npm run compile
+npm test
+```
+
+This verifies:
+
+- Variant A storage behavior
+- Variant B ATS calculation and classification
+- Variant C behavior-score and ATS calculation
+- threshold boundary behavior
+
+### 4. Run The Offline Dry-Run Experiment
+
+Use:
+
+```bash
+npm run experiment:dry
+```
+
+This generates the full `10`-entity, `30`-round, `300`-observation workload offline and exports dry-run CSV files under `results/raw/`.
+
+### 5. Prepare For Live Deployment
+
+Use:
+
+- `.env.example`
+- [docs/deployment_plan.md](docs/deployment_plan.md)
+- `npm run deploy:contracts`
+
+Only do this when you intentionally want to deploy to a live Besu RPC endpoint.
+
 ## Dry-Run Experiment Output
 
 The dry-run runner exports:
@@ -215,19 +358,6 @@ It should not:
 - restart cluster services
 
 The Besu RPC endpoint is treated as an external interface, not as part of repository management logic.
-
-## Publishing This Folder As A Separate Private Repository
-
-This folder can be published as its own private GitHub repository.
-
-Recommended approach:
-
-1. Create a new private repo on GitHub.
-2. Initialize Git from inside this folder only.
-3. Add the local files.
-4. Push to the new private remote.
-
-Because this folder currently lives inside another Git workspace, the cleanest approach is to treat `experiments/datm-paper/` as a standalone nested repository after publication.
 
 ## License
 
