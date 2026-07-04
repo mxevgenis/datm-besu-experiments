@@ -1,0 +1,62 @@
+[
+  {
+    "entity_id": "entity-01-normal",
+    "profile": "normal",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-01-normal"
+  },
+  {
+    "entity_id": "entity-02-normal",
+    "profile": "normal",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-02-normal"
+  },
+  {
+    "entity_id": "entity-03-normal",
+    "profile": "normal",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-03-normal"
+  },
+  {
+    "entity_id": "entity-04-normal",
+    "profile": "normal",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-04-normal"
+  },
+  {
+    "entity_id": "entity-05-suspicious",
+    "profile": "suspicious",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-05-suspicious"
+  },
+  {
+    "entity_id": "entity-06-suspicious",
+    "profile": "suspicious",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-06-suspicious"
+  },
+  {
+    "entity_id": "entity-07-suspicious",
+    "profile": "suspicious",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-07-suspicious"
+  },
+  {
+    "entity_id": "entity-08-malicious",
+    "profile": "malicious",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-08-malicious"
+  },
+  {
+    "entity_id": "entity-09-malicious",
+    "profile": "malicious",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-09-malicious"
+  },
+  {
+    "entity_id": "entity-10-malicious",
+    "profile": "malicious",
+    "subject_id_method": "keccak256(utf8(entityName))",
+    "subject_id_source": "entity-10-malicious"
+  }
+]

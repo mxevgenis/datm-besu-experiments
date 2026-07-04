@@ -1,0 +1,134 @@
+[
+  {
+    "sequence_no": 1,
+    "entity_id": "entity-01-normal",
+    "profile": "normal",
+    "timestamp_offset_sec": 0,
+    "scores": {
+      "identityScore": 95,
+      "credentialScore": 92,
+      "historyScore": 88
+    },
+    "indicators": {
+      "failedAuthCount": 0,
+      "unauthorizedAccessCount": 0,
+      "abnormalRequestCount": 1,
+      "cpuViolationCount": 0,
+      "memoryViolationCount": 0,
+      "slaViolationCount": 0
+    },
+    "expected_behavior_score": 96,
+    "expected_ats": 93,
+    "expected_state": "Trusted"
+  },
+  {
+    "sequence_no": 2,
+    "entity_id": "entity-01-normal",
+    "profile": "normal",
+    "timestamp_offset_sec": 10,
+    "scores": {
+      "identityScore": 94,
+      "credentialScore": 91,
+      "historyScore": 89
+    },
+    "indicators": {
+      "failedAuthCount": 0,
+      "unauthorizedAccessCount": 0,
+      "abnormalRequestCount": 0,
+      "cpuViolationCount": 0,
+      "memoryViolationCount": 0,
+      "slaViolationCount": 0
+    },
+    "expected_behavior_score": 100,
+    "expected_ats": 94,
+    "expected_state": "Trusted"
+  },
+  {
+    "sequence_no": 1,
+    "entity_id": "entity-05-suspicious",
+    "profile": "suspicious",
+    "timestamp_offset_sec": 0,
+    "scores": {
+      "identityScore": 72,
+      "credentialScore": 68,
+      "historyScore": 60
+    },
+    "indicators": {
+      "failedAuthCount": 4,
+      "unauthorizedAccessCount": 1,
+      "abnormalRequestCount": 3,
+      "cpuViolationCount": 1,
+      "memoryViolationCount": 1,
+      "slaViolationCount": 1
+    },
+    "expected_behavior_score": 59,
+    "expected_ats": 64,
+    "expected_state": "Suspicious"
+  },
+  {
+    "sequence_no": 2,
+    "entity_id": "entity-05-suspicious",
+    "profile": "suspicious",
+    "timestamp_offset_sec": 10,
+    "scores": {
+      "identityScore": 70,
+      "credentialScore": 66,
+      "historyScore": 58
+    },
+    "indicators": {
+      "failedAuthCount": 5,
+      "unauthorizedAccessCount": 1,
+      "abnormalRequestCount": 4,
+      "cpuViolationCount": 1,
+      "memoryViolationCount": 1,
+      "slaViolationCount": 1
+    },
+    "expected_behavior_score": 53,
+    "expected_ats": 61,
+    "expected_state": "Suspicious"
+  },
+  {
+    "sequence_no": 1,
+    "entity_id": "entity-08-malicious",
+    "profile": "malicious",
+    "timestamp_offset_sec": 0,
+    "scores": {
+      "identityScore": 40,
+      "credentialScore": 35,
+      "historyScore": 30
+    },
+    "indicators": {
+      "failedAuthCount": 8,
+      "unauthorizedAccessCount": 3,
+      "abnormalRequestCount": 6,
+      "cpuViolationCount": 3,
+      "memoryViolationCount": 2,
+      "slaViolationCount": 3
+    },
+    "expected_behavior_score": 0,
+    "expected_ats": 24,
+    "expected_state": "Untrusted"
+  },
+  {
+    "sequence_no": 2,
+    "entity_id": "entity-08-malicious",
+    "profile": "malicious",
+    "timestamp_offset_sec": 10,
+    "scores": {
+      "identityScore": 38,
+      "credentialScore": 32,
+      "historyScore": 28
+    },
+    "indicators": {
+      "failedAuthCount": 7,
+      "unauthorizedAccessCount": 2,
+      "abnormalRequestCount": 6,
+      "cpuViolationCount": 3,
+      "memoryViolationCount": 3,
+      "slaViolationCount": 2
+    },
+    "expected_behavior_score": 14,
+    "expected_ats": 27,
+    "expected_state": "Untrusted"
+  }
+]

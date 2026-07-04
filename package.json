@@ -1,0 +1,19 @@
+{
+  "name": "datm-paper-experiment",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "compile": "node runner/compile_contracts.js",
+    "deploy:contracts": "node scripts/deploy_contracts.js",
+    "experiment:dry": "node runner/run_experiment_dry.js",
+    "test": "XDG_CONFIG_HOME=./.xdg XDG_DATA_HOME=./.xdg XDG_CACHE_HOME=./.xdg HARDHAT_DISABLE_TELEMETRY_PROMPT=true npx hardhat test --no-compile",
+    "validate:samples": "node analysis/validate_samples.js",
+    "generate:csv": "node runner/generate_sample_csv.js"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
+    "ethers": "^5.8.0",
+    "hardhat": "^2.10.2",
+    "solc": "^0.8.19"
+  }
+}

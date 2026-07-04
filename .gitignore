@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.local
+.xdg/
+cache/
+artifacts/
+results/raw/*.csv
+results/raw/deployed_contracts.json
+npm-debug.log*
