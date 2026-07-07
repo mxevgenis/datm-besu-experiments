@@ -1,8 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const { ethers } = require("ethers");
+const { ROOT, loadEnv } = require("../runner/load_env");
 
-const ROOT = path.join(__dirname, "..");
 const OUTPUT_PATH = path.join(ROOT, "results", "raw", "deployed_contracts.json");
 
 function requireEnv(name) {
@@ -48,11 +48,21 @@ async function deployContract(wallet, label, artifactPath) {
 }
 
 async function main() {
+  loadEnv();
+
   const rpcUrl = requireEnv("BESU_RPC_URL");
-  const privateKey = requireEnv("PRIVATE_KEY");
+  const privateKey = process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.trim() !== ""
+    ? process.env.PRIVATE_KEY.trim()
+    : process.env.FROM_PK && process.env.FROM_PK.trim() !== ""
+      ? process.env.FROM_PK.trim()
+      : "";
+
+  if (privateKey === "") {
+    throw new Error("Missing sender key in .env: set PRIVATE_KEY or FROM_PK");
+  }
 
   if (!privateKey.startsWith("0x")) {
-    throw new Error("PRIVATE_KEY must be a 0x-prefixed hex string");
+    throw new Error("Sender key must be a 0x-prefixed hex string");
   }
 
   console.log("[safety] This script deploys contracts to the RPC endpoint you provide.");

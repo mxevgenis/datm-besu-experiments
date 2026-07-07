@@ -6,7 +6,9 @@
     "compile": "node runner/compile_contracts.js",
     "deploy:contracts": "node scripts/deploy_contracts.js",
     "experiment:dry": "node runner/run_experiment_dry.js",
+    "experiment:live": "node runner/run_experiment_live.js",
     "test": "XDG_CONFIG_HOME=./.xdg XDG_DATA_HOME=./.xdg XDG_CACHE_HOME=./.xdg HARDHAT_DISABLE_TELEMETRY_PROMPT=true npx hardhat test --no-compile",
+    "verify:deployment": "node runner/verify_deployment.js",
     "validate:samples": "node analysis/validate_samples.js",
     "generate:csv": "node runner/generate_sample_csv.js"
   },
@@ -15,5 +17,8 @@
     "ethers": "^5.8.0",
     "hardhat": "^2.10.2",
     "solc": "^0.8.19"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
   }
 }
