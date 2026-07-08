@@ -40,11 +40,25 @@ function getRunConfig() {
   const runMode = (process.env.RUN_MODE || "preflight").trim() || "preflight";
   const updateIntervalSec = parseInt((process.env.UPDATE_INTERVAL_SEC || "10").trim(), 10);
   const durationSec = parseInt((process.env.DURATION_SEC || "300").trim(), 10);
+  const blockPeriodSec = parseInt((process.env.BLOCK_PERIOD_SEC || "10").trim(), 10);
+  const roundStaggerMs = parseInt((process.env.ROUND_STAGGER_MS || "1500").trim(), 10);
+  const submitRetryMax = parseInt((process.env.SUBMIT_RETRY_MAX || "3").trim(), 10);
+  const submitRetryBackoffMs = parseInt((process.env.SUBMIT_RETRY_BACKOFF_MS || "3000").trim(), 10);
+  const entityLimitRaw = (process.env.ENTITY_LIMIT || "").trim();
+  const roundLimitRaw = (process.env.ROUND_LIMIT || "").trim();
+  const entityLimit = entityLimitRaw === "" ? null : parseInt(entityLimitRaw, 10);
+  const roundLimit = roundLimitRaw === "" ? null : parseInt(roundLimitRaw, 10);
 
   return {
     runMode,
     updateIntervalSec,
     durationSec,
+    blockPeriodSec,
+    roundStaggerMs,
+    submitRetryMax,
+    submitRetryBackoffMs,
+    entityLimit,
+    roundLimit,
   };
 }
 
@@ -245,10 +259,12 @@ function buildPreflightObservations(updateIntervalSec) {
   };
 }
 
-function buildRunObservations(durationSec, updateIntervalSec) {
-  const entities = loadSampleEntities();
+function buildRunObservations(durationSec, updateIntervalSec, entityLimit, roundLimit) {
+  const allEntities = loadSampleEntities();
+  const entities = entityLimit == null ? allEntities : allEntities.slice(0, Math.max(0, entityLimit));
   const runStartIso = new Date().toISOString();
-  const roundCount = Math.max(1, Math.floor(durationSec / updateIntervalSec));
+  const computedRounds = Math.max(1, Math.floor(durationSec / updateIntervalSec));
+  const roundCount = roundLimit == null ? computedRounds : Math.max(1, Math.min(computedRounds, roundLimit));
   const observations = [];
 
   for (let sequenceNo = 1; sequenceNo <= roundCount; sequenceNo += 1) {

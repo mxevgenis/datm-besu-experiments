@@ -27,9 +27,21 @@ function writeCsv(fileName, rows) {
   fs.writeFileSync(path.join(OUTPUT_DIR, fileName), rows.join("\n") + "\n");
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function trustStateLabel(value) {
   const labels = ["Unknown", "Trusted", "Suspicious", "Untrusted"];
   return typeof value === "number" ? labels[value] || `Unknown(${value})` : value;
+}
+
+function asNumber(value) {
+  if (value != null && typeof value.toNumber === "function") {
+    return value.toNumber();
+  }
+
+  return Number(value);
 }
 
 function buildTxResultRow(runMode, variant, observation, timing, receipt, result) {
@@ -107,6 +119,17 @@ function buildConsistencyRow(observation, results) {
       Math.abs(results.B.ats - results.C.ats),
       consistentState ? "preflight variants agree" : "preflight mismatch detected",
     ]),
+  };
+}
+
+function normalizeError(error) {
+  if (!error) {
+    return { code: "UNKNOWN", message: "Unknown error" };
+  }
+
+  return {
+    code: error.code || "ERROR",
+    message: error.reason || error.message || String(error),
   };
 }
 
@@ -219,13 +242,38 @@ async function executeVariant(variant, contract, observation, mode) {
   const result = {
     txHash: receipt.transactionHash,
     gasUsed: receipt.gasUsed.toString(),
-    ats: readResult.record.ats.toNumber(),
+    ats: asNumber(readResult.record.ats),
     trustState: trustStateLabel(readResult.record.trustState),
-    calcTimestamp: new Date(readResult.record.calcTimestamp.toNumber() * 1000).toISOString(),
+    calcTimestamp: new Date(asNumber(readResult.record.calcTimestamp) * 1000).toISOString(),
     latencyMs: timing.confirmationLatencyMs,
   };
 
   return { timing, receipt, result };
+}
+
+async function executeVariantWithRetry(variant, contract, observation, config) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= config.submitRetryMax; attempt += 1) {
+    try {
+      return await executeVariant(variant, contract, observation, config.runMode);
+    } catch (error) {
+      lastError = error;
+      const normalized = normalizeError(error);
+
+      if (attempt >= config.submitRetryMax) {
+        break;
+      }
+
+      const delayMs = config.submitRetryBackoffMs * attempt;
+      console.log(
+        `[live] Retry ${attempt}/${config.submitRetryMax - 1} for variant ${variant} seq=${observation.sequence_no} entity=${observation.entity_id} after ${delayMs}ms (${normalized.code}: ${normalized.message})`
+      );
+      await sleep(delayMs);
+    }
+  }
+
+  throw lastError;
 }
 
 async function runPromisePool(items, concurrency, worker) {
@@ -342,6 +390,193 @@ async function runPreflight(config, contracts, entities, observation) {
   console.log(`[live] Preflight consistency mismatches: ${consistency.consistentState ? 0 : 1}`);
 }
 
+function buildFailedUpdateRow(runMode, variant, observation, startedMs, error) {
+  const normalized = normalizeError(error);
+  const failedAt = new Date().toISOString();
+  return toCsvRow([
+    RUN_ID,
+    variant,
+    observation.entity_id,
+    observation.profile,
+    observation.sequence_no,
+    new Date(startedMs).toISOString(),
+    new Date(startedMs).toISOString(),
+    failedAt,
+    Date.now() - startedMs,
+    "",
+    "",
+    failedAt,
+    "failed",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    observation.calc_timestamp,
+    observation.input_hash,
+    normalized.code,
+    normalized.message,
+  ]);
+}
+
+function buildFailedReadRow(variant, observation, error) {
+  const normalized = normalizeError(error);
+  const now = new Date().toISOString();
+  return toCsvRow([
+    RUN_ID,
+    variant,
+    observation.entity_id,
+    observation.sequence_no,
+    now,
+    now,
+    "",
+    "latest",
+    "",
+    "",
+    "",
+    false,
+    normalized.code,
+    normalized.message,
+  ]);
+}
+
+function finalTrustStateCounts(perVariantStats) {
+  const counts = { A: {}, B: {}, C: {} };
+  for (const variant of ["A", "B", "C"]) {
+    for (const state of Object.values(perVariantStats[variant].latestStateByEntity)) {
+      counts[variant][state] = (counts[variant][state] || 0) + 1;
+    }
+  }
+  return counts;
+}
+
+function groupObservationsByRound(observations) {
+  const groups = [];
+  for (const observation of observations) {
+    const index = observation.sequence_no - 1;
+    if (!groups[index]) {
+      groups[index] = [];
+    }
+    groups[index].push(observation);
+  }
+  return groups.filter(Boolean);
+}
+
+function flushPacedOutputs(updatesRows, readsRows, eventsRows, consistencyRows) {
+  writeCsv("updates.paced.csv", updatesRows);
+  writeCsv("reads.paced.csv", readsRows);
+  writeCsv("events_storage.paced.csv", eventsRows);
+  writeCsv("consistency.paced.csv", consistencyRows);
+}
+
+async function runPaced(config, contracts, entities, roundCount, observations) {
+  const updatesRows = [toCsvRow(buildUpdatesHeader())];
+  const readsRows = [toCsvRow(buildReadsHeader())];
+  const eventsRows = [toCsvRow(buildEventsStorageHeader())];
+  const consistencyRows = [toCsvRow(buildConsistencyHeader())];
+  const perVariantStats = {
+    A: { totalUpdates: 0, successfulUpdates: 0, failedUpdates: 0, lastObservedAt: "", lastBlockNumber: "", latestStateByEntity: {}, totalGasUsed: 0, totalConfirmationLatencyMs: 0, totalReadLatencyMs: 0 },
+    B: { totalUpdates: 0, successfulUpdates: 0, failedUpdates: 0, lastObservedAt: "", lastBlockNumber: "", latestStateByEntity: {}, totalGasUsed: 0, totalConfirmationLatencyMs: 0, totalReadLatencyMs: 0 },
+    C: { totalUpdates: 0, successfulUpdates: 0, failedUpdates: 0, lastObservedAt: "", lastBlockNumber: "", latestStateByEntity: {}, totalGasUsed: 0, totalConfirmationLatencyMs: 0, totalReadLatencyMs: 0 },
+  };
+  const roundGroups = groupObservationsByRound(observations);
+  let mismatchCount = 0;
+
+  for (const roundObservations of roundGroups) {
+    const roundStartMs = Date.now();
+    const sequenceNo = roundObservations[0].sequence_no;
+
+    console.log(`[live] Starting paced round ${sequenceNo}/${roundCount} with ${roundObservations.length} entities`);
+
+    for (const observation of roundObservations) {
+      const resultsByVariant = {};
+
+      for (const entry of [
+        { key: "A", contract: contracts.variantA },
+        { key: "B", contract: contracts.variantB },
+        { key: "C", contract: contracts.variantC },
+      ]) {
+        perVariantStats[entry.key].totalUpdates += 1;
+        const startedMs = Date.now();
+
+        try {
+          const execution = await executeVariantWithRetry(entry.key, entry.contract, observation, config);
+          const { receipt, timing, result } = execution;
+
+          updatesRows.push(buildTxResultRow(config.runMode, entry.key, observation, timing, receipt, result));
+          readsRows.push(buildReadRow(entry.key, observation, timing, result));
+
+          perVariantStats[entry.key].successfulUpdates += receipt.status === 1 ? 1 : 0;
+          perVariantStats[entry.key].failedUpdates += receipt.status === 1 ? 0 : 1;
+          perVariantStats[entry.key].lastObservedAt = timing.receiptAt;
+          perVariantStats[entry.key].lastBlockNumber = receipt.blockNumber;
+          perVariantStats[entry.key].latestStateByEntity[observation.entity_id] = result.trustState;
+          perVariantStats[entry.key].totalGasUsed += parseInt(result.gasUsed, 10);
+          perVariantStats[entry.key].totalConfirmationLatencyMs += timing.confirmationLatencyMs;
+          perVariantStats[entry.key].totalReadLatencyMs += timing.readLatencyMs;
+          resultsByVariant[entry.key] = result;
+
+          console.log(
+            `[live] Paced variant ${entry.key} seq=${observation.sequence_no} entity=${observation.entity_id} tx=${result.txHash} gasUsed=${result.gasUsed} latencyMs=${result.latencyMs} ATS=${result.ats} trustState=${result.trustState}`
+          );
+        } catch (error) {
+          perVariantStats[entry.key].failedUpdates += 1;
+          updatesRows.push(buildFailedUpdateRow(config.runMode, entry.key, observation, startedMs, error));
+          readsRows.push(buildFailedReadRow(entry.key, observation, error));
+          console.log(
+            `[live] Failed variant ${entry.key} seq=${observation.sequence_no} entity=${observation.entity_id}: ${normalizeError(error).message}`
+          );
+        }
+
+        flushPacedOutputs(updatesRows, readsRows, eventsRows, consistencyRows);
+        await sleep(config.roundStaggerMs);
+      }
+
+      if (resultsByVariant.A && resultsByVariant.B && resultsByVariant.C) {
+        const consistency = buildConsistencyRow(observation, resultsByVariant);
+        consistencyRows.push(consistency.row);
+        if (!consistency.consistentState) {
+          mismatchCount += 1;
+        }
+        flushPacedOutputs(updatesRows, readsRows, eventsRows, consistencyRows);
+      }
+    }
+
+    eventsRows.push(
+      ...createEventsCheckpointRows(config.runMode, sequenceNo, entities.length, perVariantStats)
+        .slice((sequenceNo - 1) * 3, sequenceNo * 3)
+    );
+    flushPacedOutputs(updatesRows, readsRows, eventsRows, consistencyRows);
+
+    const elapsedMs = Date.now() - roundStartMs;
+    const targetMs = config.blockPeriodSec * 1000;
+    if (elapsedMs < targetMs) {
+      const sleepMs = targetMs - elapsedMs;
+      console.log(`[live] Waiting ${sleepMs}ms before next paced round`);
+      await sleep(sleepMs);
+    }
+  }
+
+  const stateCounts = finalTrustStateCounts(perVariantStats);
+
+  console.log(`[live] Paced entities loaded: ${entities.length}`);
+  console.log(`[live] Paced rounds executed: ${roundCount}`);
+  console.log(`[live] Paced logical observations: ${observations.length}`);
+  console.log(`[live] Paced consistency mismatches: ${mismatchCount}`);
+  for (const variant of ["A", "B", "C"]) {
+    const stats = perVariantStats[variant];
+    const divisor = Math.max(1, stats.successfulUpdates);
+    console.log(
+      `[live] Variant ${variant} summary: updates=${stats.totalUpdates} failed=${stats.failedUpdates} avgGasUsed=${Math.round(stats.totalGasUsed / divisor)} avgConfirmationLatencyMs=${Math.round(stats.totalConfirmationLatencyMs / divisor)} avgReadLatencyMs=${Math.round(stats.totalReadLatencyMs / divisor)} finalStates=${JSON.stringify(stateCounts[variant])}`
+    );
+  }
+}
+
 async function runShort(config, wallet, provider, contracts, entities, roundCount, observations) {
   const updatesRows = [toCsvRow(buildUpdatesHeader())];
   const readsRows = [toCsvRow(buildReadsHeader())];
@@ -428,9 +663,9 @@ async function runShort(config, wallet, provider, contracts, entities, roundCoun
     const result = {
       txHash: receipt.transactionHash,
       gasUsed: receipt.gasUsed.toString(),
-      ats: readResult.record.ats.toNumber(),
+      ats: asNumber(readResult.record.ats),
       trustState: trustStateLabel(readResult.record.trustState),
-      calcTimestamp: new Date(readResult.record.calcTimestamp.toNumber() * 1000).toISOString(),
+      calcTimestamp: new Date(asNumber(readResult.record.calcTimestamp) * 1000).toISOString(),
       latencyMs: timing.confirmationLatencyMs,
     };
 
@@ -505,8 +740,8 @@ async function runShort(config, wallet, provider, contracts, entities, roundCoun
 
 async function main() {
   const config = getRunConfig();
-  if (!["preflight", "short"].includes(config.runMode)) {
-    throw new Error(`Unsupported RUN_MODE: ${config.runMode}. Supported values are preflight and short.`);
+  if (!["preflight", "short", "paced"].includes(config.runMode)) {
+    throw new Error(`Unsupported RUN_MODE: ${config.runMode}. Supported values are preflight, short, and paced.`);
   }
 
   const provider = createProvider();
@@ -527,7 +762,16 @@ async function main() {
     return;
   }
 
-  const { entities, roundCount, observations } = buildRunObservations(config.durationSec, config.updateIntervalSec);
+  const { entities, roundCount, observations } = buildRunObservations(
+    config.durationSec,
+    config.updateIntervalSec,
+    config.entityLimit,
+    config.roundLimit
+  );
+  if (config.runMode === "paced") {
+    await runPaced(config, contracts, entities, roundCount, observations);
+    return;
+  }
   await runShort(config, wallet, provider, contracts, entities, roundCount, observations);
 }
 

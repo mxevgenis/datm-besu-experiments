@@ -43,6 +43,10 @@ The live short-run mode also supports a compressed validation workload:
 - `60` logical observations
 - `180` blockchain trust-update transactions across variants A/B/C
 
+The live paced mode is designed for QBFT networks that produce blocks every `10` seconds and cannot reliably handle burst submission.
+
+Based on the current live validation campaign, paced mode is the recommended execution path for all Besu-backed measurements in this repository.
+
 ## Shared Trust Model
 
 The shared model used across documentation, formulas, tests, and runners is:
@@ -130,12 +134,29 @@ Implemented:
 - read-only deployment verifier
 - live preflight runner
 - experimental live short-run runner
+- QBFT-aware paced live runner with retries, staggered submission, and incremental CSV flushing
 
 Current caveat:
 
 - the live short-run path works logically, but successful completion depends heavily on RPC stability and throughput
 - the external HTTP RPC used during development has shown intermittent `noNetwork` and `ECONNREFUSED` failures
 - when publishing results, prefer a stable private/internal RPC path for the live run
+
+Observed live operating envelope on the current external RPC path:
+
+- successful: `1 entity x 1 round`
+- successful: `1 entity x 2 rounds`
+- successful: `1 entity x 3 rounds`
+- successful: `2 entities x 1 round`
+- successful: `2 entities x 2 rounds`
+- successful: `3 entities x 1 round`
+- unstable/failing: `3 entities x 2 rounds`
+
+Interpretation:
+
+- the implementation itself is functioning correctly
+- the dominant limitation is RPC stability under wider paced workloads
+- the current safe operating envelope for repeatable live runs is at or below `2 entities x 2 rounds`
 
 ## Requirements
 
@@ -172,6 +193,12 @@ VARIANT_C_CONTRACT=
 RUN_MODE=preflight
 UPDATE_INTERVAL_SEC=10
 DURATION_SEC=300
+BLOCK_PERIOD_SEC=10
+ROUND_STAGGER_MS=1500
+SUBMIT_RETRY_MAX=3
+SUBMIT_RETRY_BACKOFF_MS=3000
+ENTITY_LIMIT=
+ROUND_LIMIT=
 ```
 
 Notes:
@@ -281,6 +308,40 @@ Important note:
 - this mode is intended for a live measurement run, not just a syntax check
 - if the RPC endpoint is unstable, the run may fail before CSV export completes
 
+### Paced
+
+Use:
+
+- `RUN_MODE=paced`
+- `BLOCK_PERIOD_SEC=10`
+- `ROUND_STAGGER_MS=1500`
+
+Optional controls:
+
+- `ENTITY_LIMIT=1` for very small live validation
+- `ROUND_LIMIT=1`, `ROUND_LIMIT=2`, or `ROUND_LIMIT=3` for progressive load testing
+- `SUBMIT_RETRY_MAX` and `SUBMIT_RETRY_BACKOFF_MS` for transient RPC failures
+
+Behavior:
+
+- aligns submission to the chain cadence instead of bursting transactions
+- staggers A/B/C updates inside each round
+- retries failed submissions with backoff
+- flushes CSV files incrementally so partial progress is preserved
+
+Exports on success or partial progress:
+
+- `results/raw/updates.paced.csv`
+- `results/raw/reads.paced.csv`
+- `results/raw/events_storage.paced.csv`
+- `results/raw/consistency.paced.csv`
+
+Recommended live use:
+
+- use `paced` mode for all paper-oriented live measurements
+- treat `short` mode as a stress/diagnostic path, not the default measurement path
+- scale entity count and round count gradually
+
 ## Output Files
 
 ### Dry Run
@@ -315,6 +376,30 @@ Depending on mode, the runner exports:
 - `consistency.*.csv`
 
 These CSVs are designed to support gas, latency, throughput, storage, and consistency analysis for the paper.
+
+## Recommended Live Methodology
+
+For the current RPC endpoint and QBFT configuration, the recommended methodology is:
+
+1. Deploy fresh contracts before each formal measurement campaign.
+2. Verify deployment with `npm run verify:deployment`.
+3. Run `preflight` to confirm end-to-end correctness on the active contracts.
+4. Use `paced` mode for live measurements.
+5. Keep the current pacing defaults unless you have evidence the endpoint can support more:
+   - `BLOCK_PERIOD_SEC=10`
+   - `ROUND_STAGGER_MS=1500`
+   - `SUBMIT_RETRY_MAX=3`
+   - `SUBMIT_RETRY_BACKOFF_MS=3000`
+6. Use the current proven safe live envelope as the baseline:
+   - up to `2 entities`
+   - up to `2 rounds`
+7. Treat any larger live runs as exploratory unless they are repeated successfully.
+
+What this means for the paper:
+
+- use live Besu runs to support gas comparisons, latency observations, and cross-variant correctness under controlled low-to-moderate load
+- use dry-run generation and scenario specifications to define the full target workload
+- explicitly report that larger live workloads were constrained by RPC operational stability, not by smart-contract correctness
 
 ## How To Use This Repository
 
