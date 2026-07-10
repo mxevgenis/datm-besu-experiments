@@ -11,7 +11,8 @@
     "verify:deployment": "node runner/verify_deployment.js",
     "validate:samples": "node analysis/validate_samples.js",
     "generate:csv": "node runner/generate_sample_csv.js",
-    "analyze:variants": "node analysis/generate_variant_comparison.js"
+    "analyze:variants": "node analysis/generate_variant_comparison.js",
+    "analyze:scalability": "node analysis/generate_scalability_comparison.js"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",
