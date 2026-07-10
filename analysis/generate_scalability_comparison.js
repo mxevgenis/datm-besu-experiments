@@ -139,10 +139,12 @@ function summarizeRun(variant, entityCount) {
       roundId,
       avgGasUsed: mean(roundUpdates.map((row) => Number(row.gas_used))),
       avgConfirmationLatencyMs: mean(roundUpdates.map((row) => Number(row.confirmation_latency_ms))),
+      avgEndToEndLatencyMs: mean(roundUpdates.map((row) => Number(row.end_to_end_latency_ms))),
       avgReadLatencyMs: mean(roundReads.map((row) => Number(row.read_latency_ms))),
       maxSameBlockRatio: entityCount === 0 ? 0 : maxSameBlock / entityCount,
       blockCount,
       distribution,
+      confirmationLatencies: roundUpdates.map((row) => Number(row.confirmation_latency_ms)),
     };
   });
 
@@ -164,6 +166,8 @@ function summarizeRun(variant, entityCount) {
     stdGasUsed: round(stddev(perRound.map((entry) => entry.avgGasUsed))),
     avgConfirmationLatencyMs: round(mean(perRound.map((entry) => entry.avgConfirmationLatencyMs))),
     stdConfirmationLatencyMs: round(stddev(perRound.map((entry) => entry.avgConfirmationLatencyMs))),
+    avgEndToEndLatencyMs: round(mean(perRound.map((entry) => entry.avgEndToEndLatencyMs))),
+    stdEndToEndLatencyMs: round(stddev(perRound.map((entry) => entry.avgEndToEndLatencyMs))),
     avgReadLatencyMs: round(mean(perRound.map((entry) => entry.avgReadLatencyMs))),
     stdReadLatencyMs: round(stddev(perRound.map((entry) => entry.avgReadLatencyMs))),
     avgMaxSameBlockRatio: round(mean(perRound.map((entry) => entry.maxSameBlockRatio))),
@@ -187,6 +191,8 @@ function writeSummaryCsv(summaries) {
       "std_gas_used",
       "avg_confirmation_latency_ms",
       "std_confirmation_latency_ms",
+      "avg_end_to_end_latency_ms",
+      "std_end_to_end_latency_ms",
       "avg_read_latency_ms",
       "std_read_latency_ms",
       "avg_max_same_block_ratio",
@@ -210,6 +216,8 @@ function writeSummaryCsv(summaries) {
       summary.stdGasUsed,
       summary.avgConfirmationLatencyMs,
       summary.stdConfirmationLatencyMs,
+      summary.avgEndToEndLatencyMs,
+      summary.stdEndToEndLatencyMs,
       summary.avgReadLatencyMs,
       summary.stdReadLatencyMs,
       summary.avgMaxSameBlockRatio,
@@ -234,12 +242,12 @@ function writeSummaryMarkdown(summaries) {
     "",
     "## Comparison Table",
     "",
-    "| Variant | Entities | Avg Gas | Gas Std | Avg Confirmation Latency (ms) | Latency Std | Avg Read Latency (ms) | Read Std | Avg Max Same-Block Ratio | Ratio Std | Avg Blocks/Round |",
-    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+    "| Variant | Entities | Avg Gas | Gas Std | Avg Confirmation Latency (ms) | Latency Std | Avg End-to-End Latency (ms) | End-to-End Std | Avg Read Latency (ms) | Read Std | Avg Max Same-Block Ratio | Ratio Std | Avg Blocks/Round |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
   ];
 
   for (const summary of summaries) {
-    lines.push(`| ${summary.variant} | ${summary.entityCount} | ${summary.avgGasUsed} | ${summary.stdGasUsed} | ${summary.avgConfirmationLatencyMs} | ${summary.stdConfirmationLatencyMs} | ${summary.avgReadLatencyMs} | ${summary.stdReadLatencyMs} | ${summary.avgMaxSameBlockRatio} | ${summary.stdMaxSameBlockRatio} | ${summary.avgBlocksPerRound} |`);
+    lines.push(`| ${summary.variant} | ${summary.entityCount} | ${summary.avgGasUsed} | ${summary.stdGasUsed} | ${summary.avgConfirmationLatencyMs} | ${summary.stdConfirmationLatencyMs} | ${summary.avgEndToEndLatencyMs} | ${summary.stdEndToEndLatencyMs} | ${summary.avgReadLatencyMs} | ${summary.stdReadLatencyMs} | ${summary.avgMaxSameBlockRatio} | ${summary.stdMaxSameBlockRatio} | ${summary.avgBlocksPerRound} |`);
   }
 
   lines.push("", "## Scalability Interpretation", "");
@@ -361,6 +369,153 @@ function buildLineChartSvg({ title, yLabel, metricKey, stdKey, summaries, valueF
 `;
 }
 
+function buildHeatmapSvg(summaries) {
+  const width = 900;
+  const height = 420;
+  const margin = { top: 90, right: 40, bottom: 70, left: 110 };
+  const cellWidth = 150;
+  const cellHeight = 70;
+  const xLabels = ENTITY_COUNTS;
+  const yLabels = VARIANTS;
+
+  function colorFor(value) {
+    const clamped = Math.max(0, Math.min(1, value));
+    const light = 95 - Math.round(clamped * 55);
+    return `hsl(203, 80%, ${light}%)`;
+  }
+
+  const cells = [];
+  for (let rowIndex = 0; rowIndex < yLabels.length; rowIndex += 1) {
+    for (let colIndex = 0; colIndex < xLabels.length; colIndex += 1) {
+      const variant = yLabels[rowIndex];
+      const entityCount = xLabels[colIndex];
+      const summary = summaries.find((entry) => entry.variant === variant && entry.entityCount === entityCount);
+      const x = margin.left + colIndex * cellWidth;
+      const y = margin.top + rowIndex * cellHeight;
+      cells.push(`
+        <rect x="${x}" y="${y}" width="${cellWidth - 8}" height="${cellHeight - 8}" fill="${colorFor(summary.avgMaxSameBlockRatio)}" rx="8" />
+        <text x="${x + (cellWidth - 8) / 2}" y="${y + 30}" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">${summary.avgMaxSameBlockRatio}</text>
+        <text x="${x + (cellWidth - 8) / 2}" y="${y + 52}" font-size="12" text-anchor="middle" fill="#374151">sd ${summary.stdMaxSameBlockRatio}</text>
+      `);
+    }
+  }
+
+  const xAxis = xLabels.map((count, index) => `
+    <text x="${margin.left + index * cellWidth + (cellWidth - 8) / 2}" y="${height - 28}" font-size="16" text-anchor="middle" fill="#111827">${count}</text>
+  `).join("\n");
+  const yAxis = yLabels.map((variant, index) => `
+    <text x="${margin.left - 20}" y="${margin.top + index * cellHeight + 38}" font-size="16" text-anchor="end" fill="#111827">Variant ${variant}</text>
+  `).join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <rect width="${width}" height="${height}" fill="#ffffff" />
+  <text x="${width / 2}" y="36" font-size="28" font-weight="700" text-anchor="middle" fill="#111827">Same-Block Inclusion Heatmap</text>
+  <text x="${width / 2}" y="62" font-size="16" text-anchor="middle" fill="#4b5563">Cell values show average ratio; smaller text shows standard deviation across 3 rounds</text>
+  ${cells.join("\n")}
+  ${xAxis}
+  ${yAxis}
+</svg>
+`;
+}
+
+function buildScatterSvg(summaries) {
+  const width = 980;
+  const height = 620;
+  const margin = { top: 80, right: 80, bottom: 90, left: 90 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+  const xMax = Math.max(...summaries.map((entry) => entry.avgGasUsed)) * 1.02;
+  const xMin = Math.min(...summaries.map((entry) => entry.avgGasUsed)) * 0.995;
+  const yMax = Math.max(...summaries.map((entry) => entry.avgConfirmationLatencyMs)) * 1.1;
+
+  const xFor = (value) => margin.left + ((value - xMin) / (xMax - xMin)) * chartWidth;
+  const yFor = (value) => margin.top + chartHeight - ((value / yMax) * chartHeight);
+
+  const points = summaries.map((entry) => {
+    const x = xFor(entry.avgGasUsed);
+    const y = yFor(entry.avgConfirmationLatencyMs);
+    const radius = 5 + entry.entityCount;
+    return `
+      <line x1="${x}" y1="${yFor(entry.avgConfirmationLatencyMs + entry.stdConfirmationLatencyMs)}" x2="${x}" y2="${yFor(Math.max(0, entry.avgConfirmationLatencyMs - entry.stdConfirmationLatencyMs))}" stroke="${COLORS[entry.variant]}" stroke-width="2" />
+      <circle cx="${x}" cy="${y}" r="${radius}" fill="${COLORS[entry.variant]}" fill-opacity="0.75" />
+      <text x="${x + 12}" y="${y - 8}" font-size="12" fill="#111827">${entry.variant}-${entry.entityCount}</text>
+    `;
+  }).join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <rect width="${width}" height="${height}" fill="#ffffff" />
+  <text x="${width / 2}" y="36" font-size="28" font-weight="700" text-anchor="middle" fill="#111827">Cost-Latency Tradeoff</text>
+  <text x="${width / 2}" y="${height - 20}" font-size="16" text-anchor="middle" fill="#374151">Average Gas Used</text>
+  <text x="24" y="${margin.top + chartHeight / 2}" font-size="16" text-anchor="middle" fill="#374151" transform="rotate(-90, 24, ${margin.top + chartHeight / 2})">Average Confirmation Latency (ms)</text>
+  <line x1="${margin.left}" y1="${margin.top + chartHeight}" x2="${width - margin.right}" y2="${margin.top + chartHeight}" stroke="#374151" stroke-width="2" />
+  <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + chartHeight}" stroke="#374151" stroke-width="2" />
+  ${points}
+</svg>
+`;
+}
+
+function buildBoxPlotSvg(summaries) {
+  const width = 980;
+  const height = 620;
+  const margin = { top: 80, right: 60, bottom: 90, left: 90 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+  const tenEntity = summaries.filter((entry) => entry.entityCount === 10);
+  const allVals = tenEntity.flatMap((entry) => entry.perRound.flatMap((round) => round.confirmationLatencies));
+  const yMax = Math.max(...allVals) * 1.1;
+  const yFor = (value) => margin.top + chartHeight - ((value / yMax) * chartHeight);
+  const slot = chartWidth / tenEntity.length;
+
+  function quartiles(values) {
+    const sorted = [...values].sort((a, b) => a - b);
+    const pick = (p) => {
+      const pos = (sorted.length - 1) * p;
+      const base = Math.floor(pos);
+      const rest = pos - base;
+      if (sorted[base + 1] !== undefined) {
+        return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+      }
+      return sorted[base];
+    };
+    return {
+      min: sorted[0],
+      q1: pick(0.25),
+      median: pick(0.5),
+      q3: pick(0.75),
+      max: sorted[sorted.length - 1],
+    };
+  }
+
+  const plots = tenEntity.map((entry, index) => {
+    const values = entry.perRound.flatMap((round) => round.confirmationLatencies);
+    const q = quartiles(values);
+    const center = margin.left + slot * index + slot / 2;
+    const boxWidth = 90;
+    return `
+      <line x1="${center}" y1="${yFor(q.max)}" x2="${center}" y2="${yFor(q.min)}" stroke="${COLORS[entry.variant]}" stroke-width="2" />
+      <rect x="${center - boxWidth / 2}" y="${yFor(q.q3)}" width="${boxWidth}" height="${yFor(q.q1) - yFor(q.q3)}" fill="${COLORS[entry.variant]}" fill-opacity="0.35" stroke="${COLORS[entry.variant]}" stroke-width="2" />
+      <line x1="${center - boxWidth / 2}" y1="${yFor(q.median)}" x2="${center + boxWidth / 2}" y2="${yFor(q.median)}" stroke="${COLORS[entry.variant]}" stroke-width="3" />
+      <line x1="${center - 20}" y1="${yFor(q.max)}" x2="${center + 20}" y2="${yFor(q.max)}" stroke="${COLORS[entry.variant]}" stroke-width="2" />
+      <line x1="${center - 20}" y1="${yFor(q.min)}" x2="${center + 20}" y2="${yFor(q.min)}" stroke="${COLORS[entry.variant]}" stroke-width="2" />
+      <text x="${center}" y="${height - 45}" font-size="18" font-weight="600" text-anchor="middle" fill="#111827">Variant ${entry.variant}</text>
+    `;
+  }).join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <rect width="${width}" height="${height}" fill="#ffffff" />
+  <text x="${width / 2}" y="36" font-size="28" font-weight="700" text-anchor="middle" fill="#111827">Confirmation Latency Distribution at 10 Entities</text>
+  <text x="${width / 2}" y="${height - 16}" font-size="16" text-anchor="middle" fill="#374151">Variant</text>
+  <text x="24" y="${margin.top + chartHeight / 2}" font-size="16" text-anchor="middle" fill="#374151" transform="rotate(-90, 24, ${margin.top + chartHeight / 2})">Milliseconds</text>
+  <line x1="${margin.left}" y1="${margin.top + chartHeight}" x2="${width - margin.right}" y2="${margin.top + chartHeight}" stroke="#374151" stroke-width="2" />
+  <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + chartHeight}" stroke="#374151" stroke-width="2" />
+  ${plots}
+</svg>
+`;
+}
+
 function writePlots(summaries) {
   fs.writeFileSync(
     path.join(PLOTS_DIR, "scalability_confirmation_latency.svg"),
@@ -408,6 +563,45 @@ function writePlots(summaries) {
       summaries,
       valueFormatter: (value) => `${round(value)}`,
     })
+  );
+
+  fs.writeFileSync(
+    path.join(PLOTS_DIR, "scalability_end_to_end_latency.svg"),
+    buildLineChartSvg({
+      title: "Scalability of End-to-End Trust Update Latency",
+      yLabel: "Milliseconds",
+      metricKey: "avgEndToEndLatencyMs",
+      stdKey: "stdEndToEndLatencyMs",
+      summaries,
+      valueFormatter: (value) => `${Math.round(value)}`,
+    })
+  );
+
+  fs.writeFileSync(
+    path.join(PLOTS_DIR, "scalability_blocks_per_round.svg"),
+    buildLineChartSvg({
+      title: "Scalability of Block Spread Per Round",
+      yLabel: "Blocks Per Round",
+      metricKey: "avgBlocksPerRound",
+      stdKey: "stdBlocksPerRound",
+      summaries,
+      valueFormatter: (value) => `${round(value)}`,
+    })
+  );
+
+  fs.writeFileSync(
+    path.join(PLOTS_DIR, "scalability_same_block_heatmap.svg"),
+    buildHeatmapSvg(summaries)
+  );
+
+  fs.writeFileSync(
+    path.join(PLOTS_DIR, "scalability_cost_latency_scatter.svg"),
+    buildScatterSvg(summaries)
+  );
+
+  fs.writeFileSync(
+    path.join(PLOTS_DIR, "confirmation_latency_boxplot_10_entities.svg"),
+    buildBoxPlotSvg(summaries)
   );
 }
 

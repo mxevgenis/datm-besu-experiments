@@ -47,6 +47,8 @@ The live paced mode is designed for QBFT networks that produce blocks every `10`
 
 Based on the current live validation campaign, paced mode is the recommended execution path for all Besu-backed measurements in this repository.
 
+For paper-facing comparison and scalability analysis, the recommended execution path is now the `variant-batch` live mode, where each round submits one variant at a time for all entities in the current workload slice.
+
 ## Shared Trust Model
 
 The shared model used across documentation, formulas, tests, and runners is:
@@ -89,6 +91,7 @@ The framework is designed to measure:
 - trust updates per second and per minute
 - storage growth and number of on-chain events
 - classification consistency across variants
+- same-block inclusion ratio for batched updates
 
 ## Repository Layout
 
@@ -121,6 +124,36 @@ The intended workflow for the paper experiment is:
 9. Run a longer live experiment and export raw CSV data for analysis.
 10. Analyze gas, latency, throughput, storage/event growth, and cross-variant consistency.
 
+## Current Experimental Results
+
+Two result sets are currently derived in this workspace:
+
+- `variant comparison` at `10` entities using `3` rounds per variant
+- `scalability comparison` for `3`, `6`, `9`, and `10` entities using `3` rounds per point
+
+Derived outputs are written under:
+
+- [results/derived](/home/ubuntu/besu-testbed/experiments/datm-paper/results/derived)
+
+Most relevant artifacts:
+
+- [variant_comparison_summary.md](/home/ubuntu/besu-testbed/experiments/datm-paper/results/derived/variant_comparison_summary.md)
+- [variant_scalability_summary.md](/home/ubuntu/besu-testbed/experiments/datm-paper/results/derived/variant_scalability_summary.md)
+- [paper_results_scalability.md](/home/ubuntu/besu-testbed/experiments/datm-paper/docs/paper_results_scalability.md)
+
+Scalability figures:
+
+- [scalability_confirmation_latency.svg](/home/ubuntu/besu-testbed/experiments/datm-paper/results/derived/scalability_plots/scalability_confirmation_latency.svg)
+- [scalability_gas_used.svg](/home/ubuntu/besu-testbed/experiments/datm-paper/results/derived/scalability_plots/scalability_gas_used.svg)
+- [scalability_read_latency.svg](/home/ubuntu/besu-testbed/experiments/datm-paper/results/derived/scalability_plots/scalability_read_latency.svg)
+- [scalability_same_block_ratio.svg](/home/ubuntu/besu-testbed/experiments/datm-paper/results/derived/scalability_plots/scalability_same_block_ratio.svg)
+
+Current headline conclusion:
+
+- `Variant A` is the lowest-gas option.
+- `Variant B` provides the best overall balance of gas cost, confirmation latency, and scalability stability.
+- `Variant C` preserves strong same-block inclusion but is the heaviest and most latency-variable option.
+
 ## Current Status
 
 Implemented:
@@ -135,6 +168,8 @@ Implemented:
 - live preflight runner
 - experimental live short-run runner
 - QBFT-aware paced live runner with retries, staggered submission, and incremental CSV flushing
+- batched single-variant live runner for controlled comparison and scalability campaigns
+- offline comparison and scalability analysis scripts with SVG figure generation
 
 Current caveat:
 
@@ -255,6 +290,18 @@ Run the live experiment runner:
 
 ```bash
 npm run experiment:live
+```
+
+Generate the variant comparison summary and plots:
+
+```bash
+npm run analyze:variants
+```
+
+Generate the scalability summary and plots:
+
+```bash
+npm run analyze:scalability
 ```
 
 ## Live Execution Modes
