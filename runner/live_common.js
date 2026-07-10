@@ -38,6 +38,8 @@ function getRunConfig() {
   loadEnv();
 
   const runMode = (process.env.RUN_MODE || "preflight").trim() || "preflight";
+  const targetVariant = (process.env.TARGET_VARIANT || "").trim().toUpperCase();
+  const runLabel = (process.env.RUN_LABEL || "").trim();
   const updateIntervalSec = parseInt((process.env.UPDATE_INTERVAL_SEC || "10").trim(), 10);
   const durationSec = parseInt((process.env.DURATION_SEC || "300").trim(), 10);
   const blockPeriodSec = parseInt((process.env.BLOCK_PERIOD_SEC || "10").trim(), 10);
@@ -51,6 +53,8 @@ function getRunConfig() {
 
   return {
     runMode,
+    targetVariant,
+    runLabel,
     updateIntervalSec,
     durationSec,
     blockPeriodSec,

@@ -27,6 +27,15 @@ function writeCsv(fileName, rows) {
   fs.writeFileSync(path.join(OUTPUT_DIR, fileName), rows.join("\n") + "\n");
 }
 
+function makeOutputName(baseName, config) {
+  if (!config.runLabel) {
+    return `${baseName}.csv`;
+  }
+
+  const safeLabel = config.runLabel.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `${baseName}.${safeLabel}.csv`;
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -92,6 +101,28 @@ function buildReadRow(variant, observation, timing, result) {
     true,
     "",
     `live read after ${timing.mode} update`,
+  ]);
+}
+
+function buildSingleVariantComparisonRow(variant, observation, result) {
+  return toCsvRow([
+    `${observation.entity_id}-${observation.sequence_no}`,
+    observation.entity_id,
+    observation.sequence_no,
+    observation.input_hash,
+    variant === "A" ? result.ats : "",
+    variant === "A" ? result.trustState : "",
+    variant === "B" ? result.ats : "",
+    variant === "B" ? result.trustState : "",
+    variant === "C" ? result.ats : "",
+    variant === "C" ? result.trustState : "",
+    result.trustState === observation.expected_state,
+    "",
+    "",
+    "",
+    result.trustState === observation.expected_state
+      ? `${variant} live result matches expected state`
+      : `${variant} live result differs from expected state`,
   ]);
 }
 
@@ -474,6 +505,187 @@ function flushPacedOutputs(updatesRows, readsRows, eventsRows, consistencyRows) 
   writeCsv("consistency.paced.csv", consistencyRows);
 }
 
+function flushVariantBatchOutputs(config, updatesRows, readsRows, eventsRows, consistencyRows) {
+  writeCsv(makeOutputName("updates.variant-batch", config), updatesRows);
+  writeCsv(makeOutputName("reads.variant-batch", config), readsRows);
+  writeCsv(makeOutputName("events_storage.variant-batch", config), eventsRows);
+  writeCsv(makeOutputName("consistency.variant-batch", config), consistencyRows);
+}
+
+async function runVariantBatch(config, wallet, provider, contracts, entities, roundCount, observations) {
+  const variant = config.targetVariant;
+  if (!["A", "B", "C"].includes(variant)) {
+    throw new Error("RUN_MODE=variant-batch requires TARGET_VARIANT=A, B, or C");
+  }
+
+  const contractMap = {
+    A: contracts.variantA,
+    B: contracts.variantB,
+    C: contracts.variantC,
+  };
+
+  const contract = contractMap[variant];
+  const updatesRows = [toCsvRow(buildUpdatesHeader())];
+  const readsRows = [toCsvRow(buildReadsHeader())];
+  const consistencyRows = [toCsvRow(buildConsistencyHeader())];
+  const eventsRows = [toCsvRow(buildEventsStorageHeader())];
+  const stats = {
+    totalUpdates: 0,
+    successfulUpdates: 0,
+    failedUpdates: 0,
+    lastObservedAt: "",
+    lastBlockNumber: "",
+    latestStateByEntity: {},
+    totalGasUsed: 0,
+    totalConfirmationLatencyMs: 0,
+    totalReadLatencyMs: 0,
+  };
+
+  const roundGroups = groupObservationsByRound(observations);
+  let nextNonce = await wallet.getTransactionCount("pending");
+  const gasPrice = await wallet.getGasPrice();
+  const chainId = await wallet.getChainId();
+
+  for (const roundObservations of roundGroups) {
+    const sequenceNo = roundObservations[0].sequence_no;
+    console.log(`[live] Starting variant-batch round ${sequenceNo}/${roundCount} variant=${variant} entities=${roundObservations.length}`);
+
+    const queue = [];
+    for (const observation of roundObservations) {
+      const scheduledMs = Date.now();
+      const datmStartMs = Date.now();
+      const datmEndMs = Date.now();
+      const txRequest = await populateVariantTx(variant, contract, observation);
+
+      queue.push({
+        variant,
+        contract,
+        observation,
+        scheduledMs,
+        datmStartMs,
+        datmEndMs,
+        nonce: nextNonce,
+        gasLimit: variantGasLimit(variant),
+        gasPrice,
+        chainId,
+        txRequest,
+      });
+      nextNonce += 1;
+      stats.totalUpdates += 1;
+    }
+
+    const submitted = await runPromisePool(queue, Math.min(queue.length, 10), async (item) => {
+      const rawTx = await wallet.signTransaction(Object.assign({}, item.txRequest, {
+        nonce: item.nonce,
+        gasLimit: item.gasLimit,
+        gasPrice: item.gasPrice,
+        chainId: item.chainId,
+      }));
+      const submitStartMs = Date.now();
+      const txHash = await provider.send("eth_sendRawTransaction", [rawTx]);
+      const submitMs = Date.now();
+
+      return Object.assign({}, item, {
+        txHash,
+        submitMs,
+        submitAckLatencyMs: submitMs - submitStartMs,
+      });
+    });
+
+    console.log(`[live] Submitted ${submitted.length} ${variant} transactions for round ${sequenceNo}`);
+
+    const completed = await runPromisePool(submitted, Math.min(submitted.length, 6), async (item) => {
+      const receipt = await provider.waitForTransaction(item.txHash);
+      const receiptMs = Date.now();
+      const readResult = await readTrustRecord(item.contract, item.observation);
+      const timing = timingSnapshot(
+        item.scheduledMs,
+        item.datmStartMs,
+        item.datmEndMs,
+        item.submitMs,
+        receiptMs,
+        readResult.readStartMs,
+        readResult.readEndMs
+      );
+      timing.mode = config.runMode;
+
+      const result = {
+        txHash: receipt.transactionHash,
+        gasUsed: receipt.gasUsed.toString(),
+        ats: asNumber(readResult.record.ats),
+        trustState: trustStateLabel(readResult.record.trustState),
+        calcTimestamp: new Date(asNumber(readResult.record.calcTimestamp) * 1000).toISOString(),
+        latencyMs: timing.confirmationLatencyMs,
+      };
+
+      return { item, receipt, timing, result };
+    });
+
+    const blockCounts = {};
+    for (const completion of completed) {
+      const { item, receipt, timing, result } = completion;
+      updatesRows.push(buildTxResultRow(config.runMode, variant, item.observation, timing, receipt, result));
+      readsRows.push(buildReadRow(variant, item.observation, timing, result));
+      consistencyRows.push(buildSingleVariantComparisonRow(variant, item.observation, result));
+
+      stats.successfulUpdates += receipt.status === 1 ? 1 : 0;
+      stats.failedUpdates += receipt.status === 1 ? 0 : 1;
+      stats.lastObservedAt = timing.receiptAt;
+      stats.lastBlockNumber = receipt.blockNumber;
+      stats.latestStateByEntity[item.observation.entity_id] = result.trustState;
+      stats.totalGasUsed += parseInt(result.gasUsed, 10);
+      stats.totalConfirmationLatencyMs += timing.confirmationLatencyMs;
+      stats.totalReadLatencyMs += timing.readLatencyMs;
+      blockCounts[receipt.blockNumber] = (blockCounts[receipt.blockNumber] || 0) + 1;
+
+      console.log(
+        `[live] Variant-batch ${variant} seq=${item.observation.sequence_no} entity=${item.observation.entity_id} tx=${result.txHash} block=${receipt.blockNumber} gasUsed=${result.gasUsed} latencyMs=${result.latencyMs} ATS=${result.ats} trustState=${result.trustState}`
+      );
+    }
+
+    const blockEntries = Object.entries(blockCounts).sort((a, b) => Number(a[0]) - Number(b[0]));
+    const maxSameBlock = blockEntries.reduce((max, [, count]) => Math.max(max, count), 0);
+    const blockSpread = blockEntries.length;
+    eventsRows.push(
+      toCsvRow([
+        RUN_ID,
+        variant,
+        sequenceNo,
+        stats.lastObservedAt,
+        stats.lastBlockNumber,
+        stats.totalUpdates,
+        stats.successfulUpdates,
+        stats.successfulUpdates,
+        entities.length,
+        stats.successfulUpdates,
+        stats.successfulUpdates * 4,
+        `variant-batch blocks=${blockSpread} max_same_block=${maxSameBlock} distribution=${blockEntries.map(([block, count]) => `${block}:${count}`).join("|")}`,
+      ])
+    );
+
+    flushVariantBatchOutputs(config, updatesRows, readsRows, eventsRows, consistencyRows);
+
+    if (sequenceNo < roundCount) {
+      console.log(`[live] Waiting ${config.blockPeriodSec * 1000}ms before next variant-batch round`);
+      await sleep(config.blockPeriodSec * 1000);
+    }
+  }
+
+  const divisor = Math.max(1, stats.successfulUpdates);
+  const stateCounts = {};
+  for (const state of Object.values(stats.latestStateByEntity)) {
+    stateCounts[state] = (stateCounts[state] || 0) + 1;
+  }
+
+  console.log(`[live] Variant-batch target variant: ${variant}`);
+  console.log(`[live] Variant-batch entities loaded: ${entities.length}`);
+  console.log(`[live] Variant-batch rounds executed: ${roundCount}`);
+  console.log(`[live] Variant-batch logical observations: ${observations.length}`);
+  console.log(
+    `[live] Variant ${variant} summary: updates=${stats.totalUpdates} failed=${stats.failedUpdates} avgGasUsed=${Math.round(stats.totalGasUsed / divisor)} avgConfirmationLatencyMs=${Math.round(stats.totalConfirmationLatencyMs / divisor)} avgReadLatencyMs=${Math.round(stats.totalReadLatencyMs / divisor)} finalStates=${JSON.stringify(stateCounts)}`
+  );
+}
+
 async function runPaced(config, contracts, entities, roundCount, observations) {
   const updatesRows = [toCsvRow(buildUpdatesHeader())];
   const readsRows = [toCsvRow(buildReadsHeader())];
@@ -740,8 +952,8 @@ async function runShort(config, wallet, provider, contracts, entities, roundCoun
 
 async function main() {
   const config = getRunConfig();
-  if (!["preflight", "short", "paced"].includes(config.runMode)) {
-    throw new Error(`Unsupported RUN_MODE: ${config.runMode}. Supported values are preflight, short, and paced.`);
+  if (!["preflight", "short", "paced", "variant-batch"].includes(config.runMode)) {
+    throw new Error(`Unsupported RUN_MODE: ${config.runMode}. Supported values are preflight, short, paced, and variant-batch.`);
   }
 
   const provider = createProvider();
@@ -770,6 +982,10 @@ async function main() {
   );
   if (config.runMode === "paced") {
     await runPaced(config, contracts, entities, roundCount, observations);
+    return;
+  }
+  if (config.runMode === "variant-batch") {
+    await runVariantBatch(config, wallet, provider, contracts, entities, roundCount, observations);
     return;
   }
   await runShort(config, wallet, provider, contracts, entities, roundCount, observations);
