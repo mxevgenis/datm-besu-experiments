@@ -9,38 +9,38 @@
     
 
       <line x1="90" y1="382" x2="860" y2="382" stroke="#e5e7eb" stroke-width="1" />
-      <text x="78" y="387" font-size="14" text-anchor="end" fill="#6b7280">9.15</text>
+      <text x="78" y="387" font-size="14" text-anchor="end" fill="#6b7280">40.43</text>
     
 
       <line x1="90" y1="304" x2="860" y2="304" stroke="#e5e7eb" stroke-width="1" />
-      <text x="78" y="309" font-size="14" text-anchor="end" fill="#6b7280">18.29</text>
+      <text x="78" y="309" font-size="14" text-anchor="end" fill="#6b7280">80.85</text>
     
 
       <line x1="90" y1="226" x2="860" y2="226" stroke="#e5e7eb" stroke-width="1" />
-      <text x="78" y="231" font-size="14" text-anchor="end" fill="#6b7280">27.44</text>
+      <text x="78" y="231" font-size="14" text-anchor="end" fill="#6b7280">121.28</text>
     
 
       <line x1="90" y1="148" x2="860" y2="148" stroke="#e5e7eb" stroke-width="1" />
-      <text x="78" y="153" font-size="14" text-anchor="end" fill="#6b7280">36.59</text>
+      <text x="78" y="153" font-size="14" text-anchor="end" fill="#6b7280">161.71</text>
     
 
       <line x1="90" y1="70" x2="860" y2="70" stroke="#e5e7eb" stroke-width="1" />
-      <text x="78" y="75" font-size="14" text-anchor="end" fill="#6b7280">45.74</text>
+      <text x="78" y="75" font-size="14" text-anchor="end" fill="#6b7280">202.14</text>
     
   <line x1="90" y1="460" x2="860" y2="460" stroke="#374151" stroke-width="2" />
   
-      <rect x="154.16666666666669" y="242.2982147347247" width="128.33333333333334" height="217.7017852652753" fill="#059669" rx="6" />
-      <text x="218.33333333333337" y="230.2982147347247" font-size="16" text-anchor="middle" fill="#1f2937">25.53</text>
+      <rect x="154.16666666666669" y="152.43453030269302" width="128.33333333333334" height="307.565469697307" fill="#059669" rx="6" />
+      <text x="218.33333333333337" y="140.43453030269302" font-size="16" text-anchor="middle" fill="#1f2937">159.41</text>
       <text x="218.33333333333337" y="515" font-size="18" font-weight="600" text-anchor="middle" fill="#111827">A</text>
     
 
-      <rect x="410.83333333333337" y="120.86956521739125" width="128.33333333333334" height="339.13043478260875" fill="#059669" rx="6" />
-      <text x="475.00000000000006" y="108.86956521739125" font-size="16" text-anchor="middle" fill="#1f2937">39.77</text>
+      <rect x="410.83333333333337" y="120.86956521739131" width="128.33333333333334" height="339.1304347826087" fill="#059669" rx="6" />
+      <text x="475.00000000000006" y="108.86956521739131" font-size="16" text-anchor="middle" fill="#1f2937">175.77</text>
       <text x="475.00000000000006" y="515" font-size="18" font-weight="600" text-anchor="middle" fill="#111827">B</text>
     
 
-      <rect x="667.5" y="244.5153108635524" width="128.33333333333334" height="215.4846891364476" fill="#059669" rx="6" />
-      <text x="731.6666666666666" y="232.5153108635524" font-size="16" text-anchor="middle" fill="#1f2937">25.27</text>
+      <rect x="667.5" y="230.92247527030136" width="128.33333333333334" height="229.07752472969864" fill="#059669" rx="6" />
+      <text x="731.6666666666666" y="218.92247527030136" font-size="16" text-anchor="middle" fill="#1f2937">118.73</text>
       <text x="731.6666666666666" y="515" font-size="18" font-weight="600" text-anchor="middle" fill="#111827">C</text>
     
 </svg>

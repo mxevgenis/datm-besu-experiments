@@ -29,8 +29,8 @@
     
   <line x1="90" y1="460" x2="860" y2="460" stroke="#374151" stroke-width="2" />
   
-      <rect x="154.16666666666669" y="232.78260869565213" width="128.33333333333334" height="227.21739130434787" fill="#7c3aed" rx="6" />
-      <text x="218.33333333333337" y="220.78260869565213" font-size="16" text-anchor="middle" fill="#1f2937">0.67</text>
+      <rect x="154.16666666666669" y="120.86956521739125" width="128.33333333333334" height="339.13043478260875" fill="#7c3aed" rx="6" />
+      <text x="218.33333333333337" y="108.86956521739125" font-size="16" text-anchor="middle" fill="#1f2937">1</text>
       <text x="218.33333333333337" y="515" font-size="18" font-weight="600" text-anchor="middle" fill="#111827">A</text>
     
 
@@ -39,8 +39,8 @@
       <text x="475.00000000000006" y="515" font-size="18" font-weight="600" text-anchor="middle" fill="#111827">B</text>
     
 
-      <rect x="667.5" y="131.04347826086956" width="128.33333333333334" height="328.95652173913044" fill="#7c3aed" rx="6" />
-      <text x="731.6666666666666" y="119.04347826086956" font-size="16" text-anchor="middle" fill="#1f2937">0.97</text>
+      <rect x="667.5" y="120.86956521739125" width="128.33333333333334" height="339.13043478260875" fill="#7c3aed" rx="6" />
+      <text x="731.6666666666666" y="108.86956521739125" font-size="16" text-anchor="middle" fill="#1f2937">1</text>
       <text x="731.6666666666666" y="515" font-size="18" font-weight="600" text-anchor="middle" fill="#111827">C</text>
     
 </svg>
