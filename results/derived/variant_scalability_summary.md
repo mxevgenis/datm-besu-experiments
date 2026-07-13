@@ -6,28 +6,28 @@ This summary compares Variants A, B, and C at 3, 6, 9, and 10 entities using the
 
 | Variant | Entities | Avg Gas | Gas Std | Avg Confirmation Latency (ms) | Latency Std | Avg End-to-End Latency (ms) | End-to-End Std | Avg Read Latency (ms) | Read Std | Avg Max Same-Block Ratio | Ratio Std | Avg Blocks/Round |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| A | 3 | 37771 | 0 | 14721.44 | 2310.38 | 14776.78 | 2295.66 | 22.44 | 6.95 | 1 | 0 | 1 |
-| A | 6 | 37771.67 | 1.15 | 32749 | 23725.05 | 32825.44 | 23706.72 | 27.39 | 5.75 | 0.94 | 0.1 | 1.33 |
-| A | 9 | 37772.33 | 1.33 | 43349.96 | 16895.26 | 43446.93 | 16917.36 | 21.74 | 4.9 | 0.67 | 0.29 | 2.33 |
-| A | 10 | 37771.4 | 1.2 | 51174.7 | 15221.82 | 51282.67 | 15215.15 | 27.7 | 8.25 | 0.73 | 0.21 | 2 |
-| B | 3 | 38843 | 0 | 18727.11 | 2305.75 | 18786.33 | 2312.03 | 19 | 3.18 | 0.78 | 0.19 | 1.67 |
-| B | 6 | 38850.33 | 1.15 | 20740.17 | 6430.66 | 20821.56 | 6442.03 | 31.67 | 14.29 | 0.83 | 0.29 | 1.33 |
-| B | 9 | 38855.22 | 1.33 | 27210.63 | 15934.19 | 27318 | 15961.85 | 26.52 | 2.31 | 0.93 | 0.13 | 1.33 |
-| B | 10 | 38855.1 | 1.2 | 18483.3 | 2119.57 | 18595.57 | 2148.4 | 23.5 | 1.31 | 0.97 | 0.06 | 1.33 |
-| C | 3 | 40211 | 20.78 | 17391.44 | 6114.43 | 17449.33 | 6122.32 | 23 | 6.36 | 1 | 0 | 1 |
-| C | 6 | 40237 | 14.47 | 28527.06 | 7352.58 | 28620.5 | 7347.08 | 30.94 | 4.89 | 0.94 | 0.1 | 1.33 |
-| C | 9 | 40254.33 | 10.1 | 73464.89 | 71764.83 | 73571.19 | 71762.31 | 26.78 | 3.86 | 1 | 0 | 1 |
-| C | 10 | 40256.7 | 9.09 | 21431.63 | 8337.57 | 21548.6 | 8370.75 | 28.5 | 6.62 | 1 | 0 | 1 |
+| A | 3 | 37773.13 | 2.29 | 4789.08 | 1387.11 | 4919.29 | 1385.29 | 113.53 | 14.6 | 1 | 0 | 1 |
+| A | 6 | 37773.2 | 1.92 | 4656.87 | 1615.7 | 4796.39 | 1616.3 | 113.37 | 28.74 | 1 | 0 | 1 |
+| A | 9 | 37773.49 | 1.56 | 4741.19 | 1416.63 | 5113.17 | 1485.56 | 292.97 | 288.9 | 1 | 0 | 1 |
+| A | 10 | 38252.96 | 2633.81 | 4590.76 | 704.31 | 4791.66 | 726.95 | 159.41 | 141.57 | 1 | 0 | 1 |
+| B | 3 | 38845.13 | 2.29 | 4661.2 | 1228.84 | 4794.29 | 1228.83 | 119.36 | 11.76 | 1 | 0 | 1 |
+| B | 6 | 38851.87 | 1.92 | 4786.25 | 1393.15 | 4939.68 | 1390.53 | 112.63 | 17.04 | 1 | 0 | 1 |
+| B | 9 | 38856.38 | 1.56 | 4602.55 | 835.24 | 4754.14 | 862.86 | 190.04 | 244.58 | 1 | 0 | 1 |
+| B | 10 | 39336.79 | 2633.79 | 4828.42 | 934.25 | 5028.13 | 990.02 | 175.77 | 169.41 | 1 | 0 | 1 |
+| C | 3 | 40203.93 | 8.32 | 4611.19 | 1462.68 | 4850.91 | 1330.84 | 190.61 | 205.86 | 1 | 0 | 1 |
+| C | 6 | 40232.4 | 5.81 | 4657.92 | 1230.5 | 4807.14 | 1229.05 | 109.86 | 9.4 | 1 | 0 | 1 |
+| C | 9 | 40251.4 | 3.83 | 4543.67 | 826.66 | 4688.24 | 831.25 | 119.47 | 44.2 | 0.99 | 0.04 | 1.03 |
+| C | 10 | 40734.58 | 2636.47 | 4587.54 | 709.89 | 4740.42 | 706.4 | 118.73 | 18.6 | 1 | 0 | 1 |
 
 ## Scalability Interpretation
 
-- Variant A: confirmation latency trend 3e=14721.44, 6e=32749, 9e=43349.96, 10e=51174.7; same-block ratio trend 3e=1, 6e=0.94, 9e=0.67, 10e=0.73.
-- Variant B: confirmation latency trend 3e=18727.11, 6e=20740.17, 9e=27210.63, 10e=18483.3; same-block ratio trend 3e=0.78, 6e=0.83, 9e=0.93, 10e=0.97.
-- Variant C: confirmation latency trend 3e=17391.44, 6e=28527.06, 9e=73464.89, 10e=21431.63; same-block ratio trend 3e=1, 6e=0.94, 9e=1, 10e=1.
+- Variant A: confirmation latency trend 3e=4789.08, 6e=4656.87, 9e=4741.19, 10e=4590.76; same-block ratio trend 3e=1, 6e=1, 9e=1, 10e=1.
+- Variant B: confirmation latency trend 3e=4661.2, 6e=4786.25, 9e=4602.55, 10e=4828.42; same-block ratio trend 3e=1, 6e=1, 9e=1, 10e=1.
+- Variant C: confirmation latency trend 3e=4611.19, 6e=4657.92, 9e=4543.67, 10e=4587.54; same-block ratio trend 3e=1, 6e=1, 9e=0.99, 10e=1.
 
 - Lowest overall gas point in the sweep: Variant A at 3 entities.
-- Lowest latency at 10 entities: Variant B (18483.3 ms).
-- Strongest block packing at 10 entities: Variant C (ratio 1).
+- Lowest latency at 10 entities: Variant C (4587.54 ms).
+- Strongest block packing at 10 entities: Variant A (ratio 1).
 - All runs completed without failed transactions in this scalability sweep.
 
 Across the full scalability sweep, the plots show a clear separation between cost efficiency and performance stability. Variant A consistently remains the least expensive option in gas terms, but its confirmation latency and block-spread metrics degrade as the number of entities increases. This pattern is especially visible in the confirmation-latency, end-to-end-latency, and blocks-per-round plots, where Variant A transitions from near-single-block behavior at low entity counts to wider multi-block spreading at 9 and 10 entities. In contrast, Variant B preserves a slightly higher but very stable gas cost while keeping both latency and block-inclusion behavior more controlled as the workload grows, which indicates a better operational balance between off-chain computation and on-chain verification.

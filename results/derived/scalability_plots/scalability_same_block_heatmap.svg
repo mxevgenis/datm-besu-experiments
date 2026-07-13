@@ -9,39 +9,39 @@
         <text x="181" y="142" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
-        <rect x="260" y="90" width="142" height="62" fill="hsl(203, 80%, 43%)" rx="8" />
-        <text x="331" y="120" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">0.94</text>
-        <text x="331" y="142" font-size="12" text-anchor="middle" fill="#374151">sd 0.1</text>
+        <rect x="260" y="90" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
+        <text x="331" y="120" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">1</text>
+        <text x="331" y="142" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
-        <rect x="410" y="90" width="142" height="62" fill="hsl(203, 80%, 58%)" rx="8" />
-        <text x="481" y="120" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">0.67</text>
-        <text x="481" y="142" font-size="12" text-anchor="middle" fill="#374151">sd 0.29</text>
+        <rect x="410" y="90" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
+        <text x="481" y="120" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">1</text>
+        <text x="481" y="142" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
-        <rect x="560" y="90" width="142" height="62" fill="hsl(203, 80%, 55%)" rx="8" />
-        <text x="631" y="120" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">0.73</text>
-        <text x="631" y="142" font-size="12" text-anchor="middle" fill="#374151">sd 0.21</text>
+        <rect x="560" y="90" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
+        <text x="631" y="120" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">1</text>
+        <text x="631" y="142" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
-        <rect x="110" y="160" width="142" height="62" fill="hsl(203, 80%, 52%)" rx="8" />
-        <text x="181" y="190" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">0.78</text>
-        <text x="181" y="212" font-size="12" text-anchor="middle" fill="#374151">sd 0.19</text>
+        <rect x="110" y="160" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
+        <text x="181" y="190" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">1</text>
+        <text x="181" y="212" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
-        <rect x="260" y="160" width="142" height="62" fill="hsl(203, 80%, 49%)" rx="8" />
-        <text x="331" y="190" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">0.83</text>
-        <text x="331" y="212" font-size="12" text-anchor="middle" fill="#374151">sd 0.29</text>
+        <rect x="260" y="160" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
+        <text x="331" y="190" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">1</text>
+        <text x="331" y="212" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
-        <rect x="410" y="160" width="142" height="62" fill="hsl(203, 80%, 44%)" rx="8" />
-        <text x="481" y="190" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">0.93</text>
-        <text x="481" y="212" font-size="12" text-anchor="middle" fill="#374151">sd 0.13</text>
+        <rect x="410" y="160" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
+        <text x="481" y="190" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">1</text>
+        <text x="481" y="212" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
-        <rect x="560" y="160" width="142" height="62" fill="hsl(203, 80%, 42%)" rx="8" />
-        <text x="631" y="190" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">0.97</text>
-        <text x="631" y="212" font-size="12" text-anchor="middle" fill="#374151">sd 0.06</text>
+        <rect x="560" y="160" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
+        <text x="631" y="190" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">1</text>
+        <text x="631" y="212" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
         <rect x="110" y="230" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
@@ -49,14 +49,14 @@
         <text x="181" y="282" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
-        <rect x="260" y="230" width="142" height="62" fill="hsl(203, 80%, 43%)" rx="8" />
-        <text x="331" y="260" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">0.94</text>
-        <text x="331" y="282" font-size="12" text-anchor="middle" fill="#374151">sd 0.1</text>
+        <rect x="260" y="230" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
+        <text x="331" y="260" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">1</text>
+        <text x="331" y="282" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
       
 
-        <rect x="410" y="230" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
-        <text x="481" y="260" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">1</text>
-        <text x="481" y="282" font-size="12" text-anchor="middle" fill="#374151">sd 0</text>
+        <rect x="410" y="230" width="142" height="62" fill="hsl(203, 80%, 41%)" rx="8" />
+        <text x="481" y="260" font-size="20" font-weight="700" text-anchor="middle" fill="#111827">0.99</text>
+        <text x="481" y="282" font-size="12" text-anchor="middle" fill="#374151">sd 0.04</text>
       
 
         <rect x="560" y="230" width="142" height="62" fill="hsl(203, 80%, 40%)" rx="8" />
